@@ -3,12 +3,15 @@ import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   View,
-  TextInput,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { auth } from "../../firebase";
+
+// Importação de bibliotecas
+import { auth } from "../services/firebase.js";
+
+// Importação de componentes
 import MyInput from "../components/Input";
 
 const LoginScreen = ({ navigation }) => {
@@ -56,6 +59,7 @@ const LoginScreen = ({ navigation }) => {
           value={password}
           setValue={changePassword}
           icon={"lock"}
+          secure={true}
         />
         <TouchableOpacity onPress={handleLogin} style={styles.button}>
           <Text style={styles.buttonText}>ENTRAR</Text>
@@ -108,7 +112,7 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: '500',
   },
 });
 

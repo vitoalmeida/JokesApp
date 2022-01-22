@@ -14,6 +14,8 @@ const MyInput = (props) => {
         value={props.value}
         onChangeText={(text) => props.setValue(text)}
         style={styles.input}
+        secureTextEntry={!!props.secure ? true : false}
+        dataDetectorTypes ={"all"}
       ></TextInput>
     </View>
   );
@@ -27,13 +29,15 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 40,
     marginBottom: 25,
-    padding: 5,
     borderRadius: 8,
     alignItems: "center",
     paddingLeft: 14,
   },
   input: {
     marginLeft: 10,
+    width: "100%",
+    height: "100%",
+    padding: 5,
   },
 });
 

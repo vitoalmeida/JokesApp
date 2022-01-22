@@ -3,12 +3,15 @@ import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   View,
-  TextInput,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { auth } from "../../firebase";
+
+// Importação de bibliotecas
+import { auth } from "../services/firebase.js";
+
+// Importação de componentes
 import MyInput from "../components/Input";
 
 const RegisterScreen = ({ navigation }) => {
@@ -47,13 +50,14 @@ const RegisterScreen = ({ navigation }) => {
           value={password}
           setValue={changePassword}
           icon={"lock"}
+          secure={true}
         />
         <TouchableOpacity onPress={handleSignUp} style={styles.button}>
           <Text style={styles.buttonText}>CADASTRAR</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.registerTextConteiner}
-          onPress={() => navigation.navigate("Register")}
+          onPress={() => navigation.navigate("Login")}
         >
           <Text style={[styles.registerText, { color: "#000" }]}>
             Já é cadastrado?{" "}
@@ -100,7 +104,7 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: '500',
   },
 });
 

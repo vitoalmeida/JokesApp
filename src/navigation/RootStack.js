@@ -22,11 +22,12 @@ const headerStyle = {
   },
 };
 
+// Estilização do componente
 const RootStack = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="Home"
         screenOptions={{
           headerShown: false,
         }}
