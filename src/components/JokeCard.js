@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         width: '100%',
         maxHeight: 130,
-        marginTop: 20,
+        marginBottom: 20,
         paddingVertical: 28,
         borderRadius: 8,
         flexDirection: 'row'
