@@ -26,6 +26,14 @@ const HomeScreen = ({ navigation }) => {
   const [data, setData] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // Função para verificar se a piada já esta no array
+  function arrayObjectIndexOf(myArray, searchTerm, property) {
+    for (var i = 0, len = myArray.length; i < len; i++) {
+      if (myArray[i][property] === searchTerm) return i;
+    }
+    return -1;
+  }
+
   function fetchJokeAPI(count) {
     var fetchData = [...data];
     for (let i = 0; i < count; i++) {
@@ -36,19 +44,25 @@ const HomeScreen = ({ navigation }) => {
         .then((responseJson) => {
           setLoading(false);
           setScrollLoading(false);
-          fetchData = [...fetchData, ...responseJson.jokes];
-          setData(fetchData);
+          // fetchData = [...fetchData, ...responseJson.jokes];
+          responseJson.jokes.forEach((element) => {
+            if (arrayObjectIndexOf(fetchData, element.id, "id") != element.id) {
+              fetchData.push(element);
+              setData(fetchData);
+            }
+          });
         })
         .catch((error) => {
           console.log(error);
         });
+      }
     }
-  }
-
-  useEffect(() => {
-    return fetchJokeAPI(1);
-  }, [scrollLoading]);
-
+    
+    useEffect(() => {
+      return fetchJokeAPI(2);
+    }, [scrollLoading]);
+    
+    
   const Item = ({ joke }) => <JokeCard joke={joke} />;
 
   const renderItem = ({ item }) => <Item joke={item} />;
@@ -59,7 +73,6 @@ const HomeScreen = ({ navigation }) => {
 
   function handleEndOfPage() {
     setScrollLoading(true);
-    console.log(scrollLoading);
   }
 
   if (isLoading) {
@@ -93,7 +106,7 @@ const HomeScreen = ({ navigation }) => {
           onEndReached={handleEndOfPage}
           onEndReachedThreshold={0}
         ></FlatList>
-        {scrollLoading ? <LoadingIndicator />  : null}
+        {scrollLoading ? <LoadingIndicator /> : null}
       </View>
     );
   }
