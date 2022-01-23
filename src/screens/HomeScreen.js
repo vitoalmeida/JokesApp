@@ -17,13 +17,13 @@ import LoadingIndicator from "../components/LoadingIndicator.js";
 
 // Importações de Bibliotecas
 import Icon from "react-native-vector-icons/FontAwesome5";
-import { auth } from "../services/firebase.js";
+import { database } from "../services/firebase.js";
 
 const HomeScreen = ({ navigation }) => {
   const [filter, setFilter] = useState();
   const [scrollLoading, setScrollLoading] = useState(false);
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
+  const [jokes, setJokes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
   // Função para verificar se a piada já esta no array
@@ -34,8 +34,9 @@ const HomeScreen = ({ navigation }) => {
     return -1;
   }
 
+  // Função para buscar dados da API de piadas
   function fetchJokeAPI(count) {
-    var fetchData = [...data];
+    var fetchData = jokes;
     for (let i = 0; i < count; i++) {
       fetch(
         "https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Dark,Pun,Spooky?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&type=single&amount=10"
@@ -44,27 +45,30 @@ const HomeScreen = ({ navigation }) => {
         .then((responseJson) => {
           setLoading(false);
           setScrollLoading(false);
-          // fetchData = [...fetchData, ...responseJson.jokes];
           responseJson.jokes.forEach((element) => {
             if (arrayObjectIndexOf(fetchData, element.id, "id") != element.id) {
-              fetchData.push(element);
-              setData(fetchData);
+              fetchData.push({ ...element, likes: 0, inDatabase: false });
+              // fetchData.push(element);
+              setJokes(fetchData);
             }
           });
         })
         .catch((error) => {
           console.log(error);
         });
-      }
     }
-    
-    useEffect(() => {
-      return fetchJokeAPI(2);
-    }, [scrollLoading]);
-    
-    
-  const Item = ({ joke }) => <JokeCard joke={joke} />;
+  }
 
+  function userVoting(type, joke) {
+    if (joke.inDatabase == true) {
+      console.log("Update");
+    } else {
+      console.log("Insert");
+    }
+  }
+
+  // Componentes da FlatList
+  const Item = ({ joke }) => <JokeCard userVoting={userVoting} joke={joke} />;
   const renderItem = ({ item }) => <Item joke={item} />;
 
   function closeModal() {
@@ -74,6 +78,34 @@ const HomeScreen = ({ navigation }) => {
   function handleEndOfPage() {
     setScrollLoading(true);
   }
+
+  /* Hook de efeito, executado após a montagem do componente para recuperar piadas
+     do banco de dados */
+  useEffect(() => {
+    return database.collection("Jokes").onSnapshot((query) => {
+      const list = jokes;
+      query.forEach((doc) => {
+        list.push({ ...doc.data(), id: doc.id, inDatabase: true });
+      });
+      // Ordena as piadas do banco pela quantidade de likes
+      list.sort((a, b) => {
+        if (a.likes < b.likes) {
+          return 1;
+        }
+        if (a.likes > b.likes) {
+          return -1;
+        }
+        return 0;
+      });
+      setJokes(list);
+    });
+  }, []);
+
+  /* Hook de efeito, executado após a montagem do componente para consumir piadas
+     da API */
+  useEffect(() => {
+    return fetchJokeAPI(2);
+  }, [scrollLoading]);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -99,7 +131,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
         <FlatList
           style={styles.containerJokes}
-          data={data}
+          data={jokes}
           renderItem={renderItem}
           keyExtractor={(item, index) => String(index)}
           // refreshing={}

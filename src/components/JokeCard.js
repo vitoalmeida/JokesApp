@@ -3,14 +3,17 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 // Importações de Bibliotecas
-import Icon from "react-native-vector-icons/MaterialIcons";
 import Vote from "./Vote";
 
 const JokeCard = (props) => {
+    function _userVoting(type, joke) {
+        props.userVoting(type, props.joke);
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.voteContainer}>
-                <Vote/>
+                <Vote userVoting={_userVoting} joke={props.joke}/>
             </View>
             <Text style={styles.jokeText}>
                 {props.joke.joke}
@@ -18,6 +21,8 @@ const JokeCard = (props) => {
         </View>
     )
 }
+
+// Estilização do componente
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#fff',
