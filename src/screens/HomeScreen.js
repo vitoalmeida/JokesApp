@@ -25,7 +25,7 @@ const HomeScreen = ({ navigation }) => {
   const [scrollLoading, setScrollLoading] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [jokes, setJokes] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   // Função para verificar se a piada já esta no array
   function arrayObjectIndexOf(myArray, searchTerm, property) {
@@ -57,6 +57,7 @@ const HomeScreen = ({ navigation }) => {
     }
   }
 
+  // Função para buscar piadas no bancod de dados
   function getJokes() {
     database
       .collection("Jokes")
@@ -85,6 +86,7 @@ const HomeScreen = ({ navigation }) => {
       });
   }
 
+  // Função para adicionar uma piada no banco de dados
   function createJoke(joke) {
     database
       .collection("Jokes")
@@ -92,20 +94,29 @@ const HomeScreen = ({ navigation }) => {
       .set({ ...joke, likers: [auth.currentUser?.email] });
   }
 
+  // Função para atualizar uma piada no banco de dados
   function updateJoke(joke, likes) {
     database.collection("Jokes").doc(`${joke.id}`).update({
       likes: likes,
+      likers: joke.likers,
     });
   }
 
+  // Handle para ação de voto
   function userVoting(joke, likes) {
     const newJokes = jokes;
     const index = arrayObjectIndexOf(jokes, joke.id, "id");
-    console.log(newJokes[index]);
 
     if (joke.inDatabase == true) {
       if (joke.likes < likes) newJokes[index].voted = "up";
       else newJokes[index].voted = "down";
+
+      // Verifica se o usuário que está dando o voto, já está na lista de likers
+      const likerIndex = joke.likers.indexOf(auth.currentUser?.email);
+      if (likerIndex == -1) {
+        newJokes[index].likers.push(auth.currentUser?.email);
+      }
+
       newJokes[index].likes = likes;
       setJokes(newJokes);
       updateJoke(jokes[index], likes);
@@ -121,10 +132,12 @@ const HomeScreen = ({ navigation }) => {
   const Item = ({ joke }) => <JokeCard userVoting={userVoting} joke={joke} />;
   const renderItem = ({ item }) => <Item joke={item} />;
 
+  // Handle para fechar o modais
   function closeModal() {
-    setModalVisible(false);
+    setFilterModalVisible(false);
   }
 
+  // Handle para identificar quando o usuário rolar todo o feed
   function handleEndOfPage() {
     setScrollLoading(true);
   }
@@ -146,7 +159,9 @@ const HomeScreen = ({ navigation }) => {
   } else {
     return (
       <View style={styles.container}>
-        <FilterModal closeModal={closeModal} visible={modalVisible} />
+        {/* Modais */}
+        <FilterModal closeModal={closeModal} visible={filterModalVisible} />
+
         <View style={styles.header}>
           <Text style={styles.headerText}>
             Bem vindo{/*auth.currentUser?.email*/}!
@@ -156,7 +171,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.filterContainer}>
           <TouchableOpacity
             style={styles.filter}
-            onPress={() => setModalVisible(true)}
+            onPress={() => setFilterModalVisible(true)}
           >
             <Text style={styles.filterText}>Filtros</Text>
             <Icon name={"chevron-down"} size={20} color={"#433327"} />
@@ -168,7 +183,6 @@ const HomeScreen = ({ navigation }) => {
           data={jokes}
           renderItem={renderItem}
           keyExtractor={(item, index) => String(index)}
-          // refreshing={}
           onEndReached={handleEndOfPage}
           onEndReachedThreshold={0}
         ></FlatList>

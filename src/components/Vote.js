@@ -22,7 +22,6 @@ const Vote = (props) => {
   }, [count]);
 
   function _userVoting(type) {
-    console.log(type, liked)
     if (type == "up" && liked.vote == false) {
       setCount(count + 1);
       setLiked({ vote: true, type: type });

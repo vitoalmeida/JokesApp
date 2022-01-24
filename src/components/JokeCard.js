@@ -1,17 +1,30 @@
 // Importações React
-import React from "react";
+import React, {useState} from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+
+// Importação de componentes
+import JokeModal from "../components/JokeModal.js";
 
 // Importações de Bibliotecas
 import Vote from "./Vote";
 
 const JokeCard = (props) => {
+  const [jokeModalVisible, setJokeModalVisible] = useState(false);
+
   function _userVoting(joke, likes) {
     props.userVoting(joke, likes);
   }
 
+  function closeModal() {
+    setJokeModalVisible(false);
+  }
+
   return (
-    <TouchableOpacity style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={() => setJokeModalVisible(true)}
+    >
+      <JokeModal joke={props.joke} closeModal={closeModal} visible={jokeModalVisible} />
       <View style={styles.voteContainer}>
         <Vote userVoting={_userVoting} joke={props.joke} />
       </View>
