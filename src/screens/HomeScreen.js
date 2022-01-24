@@ -18,6 +18,7 @@ import LoadingIndicator from "../components/LoadingIndicator.js";
 // Importações de Bibliotecas
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { database } from "../services/firebase.js";
+import { auth } from "../services/firebase.js";
 
 const HomeScreen = ({ navigation }) => {
   const [filter, setFilter] = useState();
@@ -36,7 +37,7 @@ const HomeScreen = ({ navigation }) => {
 
   // Função para buscar dados da API de piadas
   function fetchJokeAPI(count) {
-    var fetchData = jokes;
+    const fetchData = jokes;
     for (let i = 0; i < count; i++) {
       fetch(
         "https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Dark,Pun,Spooky?blacklistFlags=nsfw,religious,political,racist,sexist,explicit&type=single&amount=10"
@@ -48,10 +49,10 @@ const HomeScreen = ({ navigation }) => {
           responseJson.jokes.forEach((element) => {
             if (arrayObjectIndexOf(fetchData, element.id, "id") != element.id) {
               fetchData.push({ ...element, likes: 0, inDatabase: false });
-              // fetchData.push(element);
-              setJokes(fetchData);
             }
           });
+          setJokes(fetchData);
+          console.log("API", jokes);
         })
         .catch((error) => {
           console.log(error);
@@ -59,11 +60,70 @@ const HomeScreen = ({ navigation }) => {
     }
   }
 
-  function userVoting(type, joke) {
+  function getJokes() {
+    console.log("Chamou o banco");
+    database
+      .collection("Jokes")
+      .get()
+      .then((querySnapshot) => {
+        if (querySnapshot.size == 0) {
+          console.log("nulo");
+          return;
+        }
+        const list = jokes;
+        querySnapshot.forEach((query) => {
+          list.push({ ...query.data() });
+        });
+        list.sort((a, b) => {
+          if (a.likes < b.likes) {
+            return 1;
+          }
+          if (a.likes > b.likes) {
+            return -1;
+          }
+          return 0;
+        });
+        setJokes(list);
+        console.log("database", jokes);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  function createJoke(joke) {
+    database
+      .collection("Jokes")
+      .doc(`${joke.id}`)
+      .set({ ...joke, likers: [auth.currentUser?.email] });
+  }
+
+  function updateJoke(joke, likes) {
+    console.log("Joke", joke);
+    database.collection("Jokes").doc(`${joke.id}`).update({
+      likes: likes,
+    });
+  }
+
+  function userVoting(joke, likes) {
+    const newJokes = jokes;
+
+    const index = arrayObjectIndexOf(jokes, joke.id, "id");
+    newJokes[index].likes = likes;
     if (joke.inDatabase == true) {
       console.log("Update");
+
+      setJokes(newJokes);
+      updateJoke(jokes[index], likes);
+      console.log("DEPOISSS");
+      console.log(jokes);
     } else {
       console.log("Insert");
+      newJokes[index].inDatabase = true;
+      setJokes(newJokes);
+      createJoke(jokes[index]);
+      console.log("DEPOISSS");
+      console.log(jokes);
     }
   }
 
@@ -82,30 +142,14 @@ const HomeScreen = ({ navigation }) => {
   /* Hook de efeito, executado após a montagem do componente para recuperar piadas
      do banco de dados */
   useEffect(() => {
-    return database.collection("Jokes").onSnapshot((query) => {
-      const list = jokes;
-      query.forEach((doc) => {
-        list.push({ ...doc.data(), id: doc.id, inDatabase: true });
-      });
-      // Ordena as piadas do banco pela quantidade de likes
-      list.sort((a, b) => {
-        if (a.likes < b.likes) {
-          return 1;
-        }
-        if (a.likes > b.likes) {
-          return -1;
-        }
-        return 0;
-      });
-      setJokes(list);
-    });
+    return getJokes();
   }, []);
 
   /* Hook de efeito, executado após a montagem do componente para consumir piadas
      da API */
   useEffect(() => {
-    return fetchJokeAPI(2);
-  }, [scrollLoading]);
+    return fetchJokeAPI(1);
+  }, [scrollLoading /*, jokes*/]);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -115,7 +159,7 @@ const HomeScreen = ({ navigation }) => {
         <FilterModal closeModal={closeModal} visible={modalVisible} />
         <View style={styles.header}>
           <Text style={styles.headerText}>
-            Bem vindo! {/*,{auth.currentUser?.email}*/}{" "}
+            Bem vindo{/*auth.currentUser?.email*/}!
           </Text>
           <Icon name={"user-circle"} size={30} color={"#FFF"} />
         </View>
