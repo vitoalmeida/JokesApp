@@ -52,22 +52,17 @@ const HomeScreen = ({ navigation }) => {
             }
           });
           setJokes(fetchData);
-          console.log("API", jokes);
         })
-        .catch((error) => {
-          console.log(error);
-        });
+        .catch((error) => {});
     }
   }
 
   function getJokes() {
-    console.log("Chamou o banco");
     database
       .collection("Jokes")
       .get()
       .then((querySnapshot) => {
         if (querySnapshot.size == 0) {
-          console.log("nulo");
           return;
         }
         const list = jokes;
@@ -84,7 +79,6 @@ const HomeScreen = ({ navigation }) => {
           return 0;
         });
         setJokes(list);
-        console.log("database", jokes);
       })
       .catch((error) => {
         console.log(error);
@@ -99,7 +93,6 @@ const HomeScreen = ({ navigation }) => {
   }
 
   function updateJoke(joke, likes) {
-    console.log("Joke", joke);
     database.collection("Jokes").doc(`${joke.id}`).update({
       likes: likes,
     });
@@ -107,23 +100,20 @@ const HomeScreen = ({ navigation }) => {
 
   function userVoting(joke, likes) {
     const newJokes = jokes;
-
     const index = arrayObjectIndexOf(jokes, joke.id, "id");
-    newJokes[index].likes = likes;
-    if (joke.inDatabase == true) {
-      console.log("Update");
+    console.log(newJokes[index]);
 
+    if (joke.inDatabase == true) {
+      if (joke.likes < likes) newJokes[index].voted = "up";
+      else newJokes[index].voted = "down";
+      newJokes[index].likes = likes;
       setJokes(newJokes);
       updateJoke(jokes[index], likes);
-      console.log("DEPOISSS");
-      console.log(jokes);
     } else {
-      console.log("Insert");
       newJokes[index].inDatabase = true;
+      newJokes[index].likes = likes;
       setJokes(newJokes);
       createJoke(jokes[index]);
-      console.log("DEPOISSS");
-      console.log(jokes);
     }
   }
 
@@ -149,7 +139,7 @@ const HomeScreen = ({ navigation }) => {
      da API */
   useEffect(() => {
     return fetchJokeAPI(1);
-  }, [scrollLoading /*, jokes*/]);
+  }, [scrollLoading]);
 
   if (isLoading) {
     return <LoadingScreen />;

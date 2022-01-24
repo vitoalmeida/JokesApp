@@ -1,6 +1,6 @@
 // Importações React
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 // Importações de Bibliotecas
 import Vote from "./Vote";
@@ -11,12 +11,12 @@ const JokeCard = (props) => {
   }
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container}>
       <View style={styles.voteContainer}>
         <Vote userVoting={_userVoting} joke={props.joke} />
       </View>
       <Text style={styles.jokeText}>{props.joke.joke}</Text>
-    </View>
+    </TouchableOpacity>
   );
 };
 

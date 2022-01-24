@@ -6,7 +6,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const Vote = (props) => {
-  const [liked, setLiked] = useState({ vote: false, type: "" });
+  const [liked, setLiked] = useState({
+    vote: props.joke.voted != null ? true : false,
+    type: props.joke.voted,
+  });
   const [count, setCount] = useState(props.joke.likes);
   const isFirstRender = useRef(true);
 
@@ -19,18 +22,29 @@ const Vote = (props) => {
   }, [count]);
 
   function _userVoting(type) {
+    console.log(type, liked)
     if (type == "up" && liked.vote == false) {
       setCount(count + 1);
       setLiked({ vote: true, type: type });
     } else if (type == "down" && liked.vote == false) {
       setCount(count - 1);
       setLiked({ vote: true, type: type });
-    } else if (type == "up" && liked.vote == true) {
+    } 
+    
+    else if (liked.type == "down" && type == "up" && liked.vote == true) {
       setCount(count + 2);
       setLiked({ vote: true, type: type });
-    } else if (type == "down" && liked.vote == true) {
+    } else if (liked.type == "up" && type == "down" && liked.vote == true) {
       setCount(count - 2);
       setLiked({ vote: true, type: type });
+    } 
+    
+    else if (liked.type == "down" && type == "down" && liked.vote == true) {
+      setCount(count + 1);
+      setLiked({ vote: false, type: "" });
+    } else if (liked.type == "up" && type == "up" && liked.vote == true) {
+      setCount(count - 1);
+      setLiked({ vote: false, type: "" });
     }
   }
 
