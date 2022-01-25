@@ -6,10 +6,12 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ImageBackground,
 } from "react-native";
 
 // Importação de bibliotecas
 import { auth } from "../services/firebase.js";
+import { database } from "../services/firebase.js";
 
 // Importação de componentes
 import MyInput from "../components/Input";
@@ -29,7 +31,25 @@ const LoginScreen = ({ navigation }) => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        navigation.replace("Home");
+        database
+          .collection("Administrators")
+          .get()
+          .then((querySnapshot) => {
+            if (querySnapshot.size == 0) {
+              return;
+            }
+            var userLevel = 0;
+            querySnapshot.forEach((query) => {
+              if (query.data().email == auth.currentUser?.email) {
+                console.log("é adm");
+                userLevel = 1;
+              }
+            });
+            navigation.replace("Home", { userLevel: userLevel });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
       }
     });
 
@@ -47,50 +67,86 @@ const LoginScreen = ({ navigation }) => {
   };
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <View style={styles.inputContainer}>
-        <MyInput
-          placeholder={"Email"}
-          value={email}
-          setValue={changeEmail}
-          icon={"account-circle"}
-        />
-        <MyInput
-          placeholder={"Password"}
-          value={password}
-          setValue={changePassword}
-          icon={"lock"}
-          secure={true}
-        />
-        <TouchableOpacity onPress={handleLogin} style={styles.button}>
-          <Text style={styles.buttonText}>ENTRAR</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.registerTextConteiner}
-          onPress={() => navigation.navigate("Register")}
-        >
-          <Text style={[styles.registerText, { color: "#000" }]}>
-            Não é cadastrado ainda?
-          </Text>
-          <Text style={[styles.registerText, { color: "#FFF" }]}>
-            Clique aqui!
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ImageBackground
+        source={require("../assets/backgroundLogin.png")}
+        style={styles.backgroundImage}
+      >
+        <View style={styles.titleContainer}>
+          <Text style={styles.title1}>Entre agora!</Text>
+          <Text style={styles.title2}>E comece a dar</Text>
+          <View style={styles.titleContainerAlign}>
+            <Text style={styles.title2}>boas </Text>
+            <Text style={[styles.title2, { color: "#FFF" }]}>risadas!</Text>
+          </View>
+        </View>
+        <View style={styles.inputContainer}>
+          <MyInput
+            placeholder={"Email"}
+            value={email}
+            setValue={changeEmail}
+            icon={"account-circle"}
+          />
+          <MyInput
+            placeholder={"Password"}
+            value={password}
+            setValue={changePassword}
+            icon={"lock"}
+            secure={true}
+          />
+          <TouchableOpacity onPress={handleLogin} style={styles.button}>
+            <Text style={styles.buttonText}>ENTRAR</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.registerTextConteiner}
+            onPress={() => navigation.navigate("Register")}
+          >
+            <Text style={[styles.registerText, { color: "#000" }]}>
+              Não é cadastrado ainda?
+            </Text>
+            <Text style={[styles.registerText, { color: "#FFF" }]}>
+              Clique aqui!
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
     </KeyboardAvoidingView>
   );
 };
 
 // Estilização da tela
 const styles = StyleSheet.create({
-  container: {
+  backgroundImage: {
+    backgroundColor: "#FBC401",
     flex: 1,
-    backgroundColor: "#FCC401",
+    resizeMode: "cover",
     justifyContent: "center",
+    paddingTop: 50,
     alignItems: "center",
   },
-  inputContainer: {
+  container: {
+    flex: 1,
+  },
+  titleContainer: {
     width: "100%",
-    padding: 45,
+    paddingHorizontal: 45,
+  },
+  titleContainerAlign: {
+    flexDirection: "row",
+  },
+  title1: {
+    color: "#FFF",
+    fontSize: 35,
+    fontWeight: "700",
+  },
+  title2: {
+    color: "#433327",
+    fontSize: 30,
+    fontWeight: "600",
+  },
+  inputContainer: {
+    marginTop: 25,
+    width: "100%",
+    paddingHorizontal: 45,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -99,20 +155,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    height: 40,
-    marginTop: 8,
+    height: 45,
+    // marginTop: 8,
     borderRadius: 8,
   },
   buttonText: {
     color: "#fff",
+    fontWeight: "600",
   },
   registerTextConteiner: {
     alignItems: "center",
     marginTop: 15,
   },
   registerText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 17,
+    fontWeight: "500",
   },
 });
 

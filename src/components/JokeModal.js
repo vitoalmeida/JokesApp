@@ -40,11 +40,15 @@ const JokeModal = (props) => {
             <Text style={styles.likesText}>Contagem de Votos</Text>
           </View>
           <Text style={styles.lastLikers}>Últimos votantes:</Text>
-          <FlatList
-            data={props.joke.likers}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => String(index)}
-          />
+          {props.joke.likers == null ? (
+            <Text>Nenhum usuário votou nessa piada ainda.</Text>
+          ) : (
+            <FlatList
+              data={props.joke.likers}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => String(index)}
+            />
+          )}
         </View>
       </View>
     </Modal>
@@ -109,7 +113,7 @@ const styles = StyleSheet.create({
   liker: {
     fontSize: 16,
     marginTop: 10,
-  }
+  },
 });
 
 export default JokeModal;

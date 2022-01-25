@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "../screens/LoginScreen.js";
 import RegisterScreen from "../screens/RegisterScreen.js";
 import HomeScreen from "../screens/HomeScreen.js"
+import ManageUsersScreen from "../screens/ManageUsersScreen.js";
 
 // Função que retorna Screen e Navigator, componentes para configurar o navegador
 const Stack = createNativeStackNavigator();
@@ -22,12 +23,12 @@ const headerStyle = {
   },
 };
 
-// Estilização do componente
+// Configuração do navegador
 const RootStack = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="Register"
         screenOptions={{
           headerShown: false,
         }}
@@ -35,6 +36,7 @@ const RootStack = () => {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="ManageUsers" component={ManageUsersScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,5 +1,5 @@
 // Importações React
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Text,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 
 // Importação de componentes
@@ -20,9 +21,12 @@ import Icon from "react-native-vector-icons/FontAwesome5";
 import { database } from "../services/firebase.js";
 import { auth } from "../services/firebase.js";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ route, navigation }) => {
+  const { userLevel } = route.params;
+
   const [filter, setFilter] = useState();
   const [scrollLoading, setScrollLoading] = useState(false);
+  const [isRefreshing, setRefreshing] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [jokes, setJokes] = useState([]);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -44,14 +48,22 @@ const HomeScreen = ({ navigation }) => {
       )
         .then((response) => response.json())
         .then((responseJson) => {
-          setLoading(false);
-          setScrollLoading(false);
           responseJson.jokes.forEach((element) => {
+            // Não permite puxar da API piadas que já estejam no banco
             if (arrayObjectIndexOf(fetchData, element.id, "id") != element.id) {
-              fetchData.push({ ...element, likes: 0, inDatabase: false });
+              fetchData.push({
+                ...element,
+                likes: 0,
+                inDatabase: false,
+                hide: false,
+              });
             }
           });
           setJokes(fetchData);
+          setLoading(false);
+          setScrollLoading(false);
+          setRefreshing(false);
+          console.log("Chamou a API");
         })
         .catch((error) => {});
     }
@@ -63,23 +75,25 @@ const HomeScreen = ({ navigation }) => {
       .collection("Jokes")
       .get()
       .then((querySnapshot) => {
-        if (querySnapshot.size == 0) {
-          return;
+        if (querySnapshot.size != 0) {
+          const list = jokes;
+          querySnapshot.forEach((query) => {
+            list.push({ ...query.data() });
+          });
+          if (list.length > 0) {
+            list.sort((a, b) => {
+              if (a.likes < b.likes) {
+                return 1;
+              }
+              if (a.likes > b.likes) {
+                return -1;
+              }
+              return 0;
+            });
+            setJokes(list);
+          }
+          console.log("Chamou o Banco");
         }
-        const list = jokes;
-        querySnapshot.forEach((query) => {
-          list.push({ ...query.data() });
-        });
-        list.sort((a, b) => {
-          if (a.likes < b.likes) {
-            return 1;
-          }
-          if (a.likes > b.likes) {
-            return -1;
-          }
-          return 0;
-        });
-        setJokes(list);
       })
       .catch((error) => {
         console.log(error);
@@ -110,13 +124,11 @@ const HomeScreen = ({ navigation }) => {
     if (joke.inDatabase == true) {
       if (joke.likes < likes) newJokes[index].voted = "up";
       else newJokes[index].voted = "down";
-
       // Verifica se o usuário que está dando o voto, já está na lista de likers
       const likerIndex = joke.likers.indexOf(auth.currentUser?.email);
       if (likerIndex == -1) {
         newJokes[index].likers.push(auth.currentUser?.email);
       }
-
       newJokes[index].likes = likes;
       setJokes(newJokes);
       updateJoke(jokes[index], likes);
@@ -129,12 +141,68 @@ const HomeScreen = ({ navigation }) => {
   }
 
   // Componentes da FlatList
-  const Item = ({ joke }) => <JokeCard userVoting={userVoting} joke={joke} />;
-  const renderItem = ({ item }) => <Item joke={item} />;
+  const Item = ({ joke }) => (
+    <JokeCard
+      hideJoke={hideJoke}
+      userLevel={userLevel}
+      userVoting={userVoting}
+      joke={joke}
+    />
+  );
+  const renderItem = ({ item }) => {
+    if (item.hide != true) return <Item joke={item} />;
+  };
 
-  // Handle para fechar o modais
+  // Funções de modal
   function closeModal() {
     setFilterModalVisible(false);
+  }
+
+  // Função para um administrador esconder uma piada
+  function hideJoke(joke) {
+    const newJokes = jokes;
+    const index = arrayObjectIndexOf(newJokes, joke.id, "id");
+    newJokes[index].hide = !joke.hide;
+    setJokes(newJokes);
+
+    if (newJokes[index].inDatabase == true) {
+      database.collection("Jokes").doc(`${newJokes[index].id}`).update({
+        hide: newJokes[index].hide,
+      });
+    } else {
+      database
+        .collection("Jokes")
+        .doc(`${newJokes[index].id}`)
+        .set({ ...newJokes[index], hide: true });
+    }
+  }
+
+  // Função para filtrar a lista de piadas
+  function defineFilter(type) {
+    const newJokes = jokes;
+
+    if (type == "upvote") {
+      newJokes.sort((a, b) => {
+        if (a.likes < b.likes) {
+          return 1;
+        }
+        if (a.likes > b.likes) {
+          return -1;
+        }
+        return 0;
+      });
+    } else {
+      newJokes.sort((a, b) => {
+        if (a.likes > b.likes) {
+          return 1;
+        }
+        if (a.likes < b.likes) {
+          return -1;
+        }
+        return 0;
+      });
+    }
+    setJokes(newJokes);
   }
 
   // Handle para identificar quando o usuário rolar todo o feed
@@ -142,17 +210,41 @@ const HomeScreen = ({ navigation }) => {
     setScrollLoading(true);
   }
 
+  // Handle para deslogar
+  function handleSignOut() {
+    Alert.alert("Confirmar", "Tem certeza que deseja sair?", [
+      {
+        text: "Sim",
+        onPress: () => {
+          auth
+            .signOut()
+            .then(() => {
+              navigation.replace("Login");
+            })
+            .catch((error) => alert(error.message));
+        },
+      },
+      { text: "Não" },
+    ]);
+  }
+  // Handle para identificar quando o usuário solicitar refresh da pagina
+  function refreshPage() {
+    setJokes([]);
+    setRefreshing(true);
+  }
+
   /* Hook de efeito, executado após a montagem do componente para recuperar piadas
      do banco de dados */
   useEffect(() => {
-    return getJokes();
-  }, []);
+    if (isLoading == true || isRefreshing == true) return getJokes();
+  }, [isLoading, isRefreshing]);
 
   /* Hook de efeito, executado após a montagem do componente para consumir piadas
      da API */
   useEffect(() => {
-    return fetchJokeAPI(1);
-  }, [scrollLoading]);
+    if (isLoading == true || scrollLoading == true || isRefreshing == true)
+      return fetchJokeAPI(2);
+  }, [isLoading, isRefreshing, scrollLoading]);
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -160,23 +252,36 @@ const HomeScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         {/* Modais */}
-        <FilterModal closeModal={closeModal} visible={filterModalVisible} />
+        <FilterModal
+          defineFilter={defineFilter}
+          closeModal={closeModal}
+          visible={filterModalVisible}
+        />
 
         <View style={styles.header}>
           <Text style={styles.headerText}>
             Bem vindo{/*auth.currentUser?.email*/}!
           </Text>
-          <Icon name={"user-circle"} size={30} color={"#FFF"} />
+          <View style={styles.headerBtns}>
+            <TouchableOpacity onPress={() => {navigation.navigate("ManageUsers", { userLevel: userLevel })}}>
+              <Icon name={"users-cog"} size={25} color={"#FFF"} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleSignOut}>
+              <Icon name={"sign-out-alt"} size={25} color={"#FFF"} />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.filterContainer}>
           <TouchableOpacity
             style={styles.filter}
             onPress={() => setFilterModalVisible(true)}
           >
-            <Text style={styles.filterText}>Filtros</Text>
+            <Text style={styles.filterText}>Ordernar</Text>
             <Icon name={"chevron-down"} size={20} color={"#433327"} />
           </TouchableOpacity>
-          <Icon name={"redo"} size={22} color={"#433327"} />
+          <TouchableOpacity onPress={() => refreshPage()}>
+            <Icon name={"redo"} size={22} color={"#433327"} />
+          </TouchableOpacity>
         </View>
         <FlatList
           style={styles.containerJokes}
@@ -185,6 +290,9 @@ const HomeScreen = ({ navigation }) => {
           keyExtractor={(item, index) => String(index)}
           onEndReached={handleEndOfPage}
           onEndReachedThreshold={0}
+          onRefresh={() => refreshPage()}
+          refreshing={isRefreshing}
+          extraData={isRefreshing}
         ></FlatList>
         {scrollLoading ? <LoadingIndicator /> : null}
       </View>
@@ -210,7 +318,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     paddingTop: 12,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -218,6 +326,11 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 26,
     color: "#FFF",
+  },
+  headerBtns: {
+    width: 70,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   filterContainer: {
     zIndex: 1,

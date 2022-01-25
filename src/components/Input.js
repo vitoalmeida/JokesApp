@@ -8,7 +8,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 const MyInput = (props) => {
   return (
     <View style={styles.container}>
-      <Icon name={props.icon} size={24} color={"#433327"} />
+      <Icon name={props.icon} size={26} color={"#433327"} />
       <TextInput
         placeholder={props.placeholder}
         value={props.value}
@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#FFFFFF",
     width: "100%",
-    height: 40,
+    height: 45,
     marginBottom: 25,
     borderRadius: 8,
     alignItems: "center",
