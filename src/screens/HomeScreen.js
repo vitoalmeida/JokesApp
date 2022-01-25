@@ -22,9 +22,9 @@ import { database } from "../services/firebase.js";
 import { auth } from "../services/firebase.js";
 
 const HomeScreen = ({ route, navigation }) => {
+  // Pega o nível de permissão do usuário
   const { userLevel } = route.params;
 
-  const [filter, setFilter] = useState();
   const [scrollLoading, setScrollLoading] = useState(false);
   const [isRefreshing, setRefreshing] = useState(false);
   const [isLoading, setLoading] = useState(true);
@@ -153,7 +153,7 @@ const HomeScreen = ({ route, navigation }) => {
     if (item.hide != true) return <Item joke={item} />;
   };
 
-  // Funções de modal
+  // Handle para fechar o modal de filtros
   function closeModal() {
     setFilterModalVisible(false);
   }
@@ -165,10 +165,12 @@ const HomeScreen = ({ route, navigation }) => {
     newJokes[index].hide = !joke.hide;
     setJokes(newJokes);
 
+    // Caso a piada esteja no banco de dados, altera o booleanod da propriedade "hide"
     if (newJokes[index].inDatabase == true) {
       database.collection("Jokes").doc(`${newJokes[index].id}`).update({
         hide: newJokes[index].hide,
       });
+    // Caso a piada não esteja no banco, adiciona ela
     } else {
       database
         .collection("Jokes")
@@ -227,6 +229,7 @@ const HomeScreen = ({ route, navigation }) => {
       { text: "Não" },
     ]);
   }
+
   // Handle para identificar quando o usuário solicitar refresh da pagina
   function refreshPage() {
     setJokes([]);
@@ -260,10 +263,14 @@ const HomeScreen = ({ route, navigation }) => {
 
         <View style={styles.header}>
           <Text style={styles.headerText}>
-            Bem vindo{/*auth.currentUser?.email*/}!
+            Bem vindo!
           </Text>
           <View style={styles.headerBtns}>
-            <TouchableOpacity onPress={() => {navigation.navigate("ManageUsers", { userLevel: userLevel })}}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("ManageUsers", { userLevel: userLevel });
+              }}
+            >
               <Icon name={"users-cog"} size={25} color={"#FFF"} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>

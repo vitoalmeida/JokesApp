@@ -20,10 +20,12 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Handle para atualizar email
   function changeEmail(value) {
     setEmail(value);
   }
 
+  // Handle para atualizar a senha
   function changePassword(value) {
     setPassword(value);
   }
@@ -31,6 +33,7 @@ const LoginScreen = ({ navigation }) => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
+        // Pega os administradores
         database
           .collection("Administrators")
           .get()
@@ -40,8 +43,8 @@ const LoginScreen = ({ navigation }) => {
             }
             var userLevel = 0;
             querySnapshot.forEach((query) => {
+              // Caso o usuário que esteja entrando seja adm, muda o nível de permissão
               if (query.data().email == auth.currentUser?.email) {
-                console.log("é adm");
                 userLevel = 1;
               }
             });
@@ -56,6 +59,7 @@ const LoginScreen = ({ navigation }) => {
     return unsubscribe;
   }, []);
 
+  // Handle para identificar login
   const handleLogin = () => {
     auth
       .signInWithEmailAndPassword(email, password)
@@ -65,6 +69,7 @@ const LoginScreen = ({ navigation }) => {
       })
       .catch((error) => alert(error.message));
   };
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <ImageBackground

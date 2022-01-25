@@ -9,8 +9,6 @@ import {
   FlatList,
 } from "react-native";
 
-// Importação de componentes
-
 // Importações de Bibliotecas
 import Icon from "react-native-vector-icons/FontAwesome";
 

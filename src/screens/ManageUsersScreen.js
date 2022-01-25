@@ -1,26 +1,20 @@
 // Importações React
-import React, { useEffect, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 // Importação de bibliotecas
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { database } from "../services/firebase.js";
 
-// Importação de componentes
-
 const ManageUsersScreen = ({ route, navigation }) => {
+  // Pega o nível de permissão do usuário
   const { userLevel } = route.params;
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerBtn}
+        <TouchableOpacity
+          style={styles.headerBtn}
           onPress={() => {
             navigation.navigate("Home", { userLevel: userLevel });
           }}
@@ -55,9 +49,9 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
   },
   headerBtn: {
-    position: 'absolute',
+    position: "absolute",
     left: 25,
-    top: 50
+    top: 50,
   },
   headerConteinerText: {
     alignItems: "center",

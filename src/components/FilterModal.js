@@ -2,8 +2,6 @@
 import React from "react";
 import { View, StyleSheet, Modal, Text, TouchableOpacity } from "react-native";
 
-// Importação de componentes
-
 // Importações de Bibliotecas
 import Icon from "react-native-vector-icons/FontAwesome";
 

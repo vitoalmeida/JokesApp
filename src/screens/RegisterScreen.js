@@ -28,14 +28,17 @@ const RegisterScreen = ({ navigation }) => {
     return unsubscribe;
   }, []);
 
+  // Handle para atualizar email
   function changeEmail(value) {
     setEmail(value);
   }
 
+  // Handle para atualizar a senha
   function changePassword(value) {
     setPassword(value);
   }
 
+  // Handle para identificar cadastramento
   const handleSignUp = () => {
     auth
       .createUserWithEmailAndPassword(email, password)

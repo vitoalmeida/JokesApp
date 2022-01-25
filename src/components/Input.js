@@ -1,6 +1,6 @@
 // Importações React
-import React, { useEffect, useState } from "react";
-import { View, TextInput, Text, StyleSheet } from "react-native";
+import React from "react";
+import { View, TextInput, StyleSheet } from "react-native";
 
 // Importações de Bibliotecas
 import Icon from "react-native-vector-icons/MaterialIcons";
