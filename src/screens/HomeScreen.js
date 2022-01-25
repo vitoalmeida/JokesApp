@@ -125,7 +125,9 @@ const HomeScreen = ({ route, navigation }) => {
       if (joke.likes < likes) newJokes[index].voted = "up";
       else newJokes[index].voted = "down";
       // Verifica se o usuário que está dando o voto, já está na lista de likers
-      const likerIndex = newJokes[index].likers.indexOf(auth.currentUser?.email);
+      const likerIndex = newJokes[index].likers.indexOf(
+        auth.currentUser?.email
+      );
       if (likerIndex == -1) {
         newJokes[index].likers.push(auth.currentUser?.email);
       }
@@ -264,13 +266,15 @@ const HomeScreen = ({ route, navigation }) => {
         <View style={styles.header}>
           <Text style={styles.headerText}>Bem vindo!</Text>
           <View style={styles.headerBtns}>
-            <TouchableOpacity
-              onPress={() => {
-                navigation.navigate("ManageUsers", { userLevel: userLevel });
-              }}
-            >
-              <Icon name={"users-cog"} size={25} color={"#FFF"} />
-            </TouchableOpacity>
+            {userLevel == 1 ? (
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate("ManageUsers", { userLevel: userLevel });
+                }}
+              >
+                <Icon name={"users-cog"} size={25} color={"#FFF"} />
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity onPress={handleSignOut}>
               <Icon name={"sign-out-alt"} size={25} color={"#FFF"} />
             </TouchableOpacity>
