@@ -125,7 +125,7 @@ const HomeScreen = ({ route, navigation }) => {
       if (joke.likes < likes) newJokes[index].voted = "up";
       else newJokes[index].voted = "down";
       // Verifica se o usuário que está dando o voto, já está na lista de likers
-      const likerIndex = joke.likers.indexOf(auth.currentUser?.email);
+      const likerIndex = newJokes[index].likers.indexOf(auth.currentUser?.email);
       if (likerIndex == -1) {
         newJokes[index].likers.push(auth.currentUser?.email);
       }
@@ -162,20 +162,20 @@ const HomeScreen = ({ route, navigation }) => {
   function hideJoke(joke) {
     const newJokes = jokes;
     const index = arrayObjectIndexOf(newJokes, joke.id, "id");
-    newJokes[index].hide = !joke.hide;
+    newJokes[index].hide = !newJokes[index].hide;
     setJokes(newJokes);
 
     // Caso a piada esteja no banco de dados, altera o booleanod da propriedade "hide"
     if (newJokes[index].inDatabase == true) {
       database.collection("Jokes").doc(`${newJokes[index].id}`).update({
-        hide: newJokes[index].hide,
+        hide: jokes[index].hide,
       });
-    // Caso a piada não esteja no banco, adiciona ela
+      // Caso a piada não esteja no banco, adiciona ela
     } else {
       database
         .collection("Jokes")
-        .doc(`${newJokes[index].id}`)
-        .set({ ...newJokes[index], hide: true });
+        .doc(`${jokes[index].id}`)
+        .set({ ...jokes[index], hide: true, inDatabase: true });
     }
   }
 
@@ -262,9 +262,7 @@ const HomeScreen = ({ route, navigation }) => {
         />
 
         <View style={styles.header}>
-          <Text style={styles.headerText}>
-            Bem vindo!
-          </Text>
+          <Text style={styles.headerText}>Bem vindo!</Text>
           <View style={styles.headerBtns}>
             <TouchableOpacity
               onPress={() => {

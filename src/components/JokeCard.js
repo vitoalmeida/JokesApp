@@ -33,16 +33,16 @@ const JokeCard = (props) => {
       style={[styles.container]}
       onPress={() => setJokeModalVisible(true)}
     >
+      {isHide ? (
+        <View style={styles.banned}>
+          <Icon name="ban" size={90} color={"#FFC0C0"}></Icon>
+        </View>
+      ) : null}
       <JokeModal
         joke={props.joke}
         closeModal={closeModal}
         visible={jokeModalVisible}
       />
-      {isHide ? (
-        <View style={styles.banned}>
-          <Icon name="ban" size={100} color={"#FFC0C0"}></Icon>
-        </View>
-      ) : null}
       <View style={styles.voteContainer}>
         <Vote userVoting={_userVoting} joke={props.joke} />
       </View>
